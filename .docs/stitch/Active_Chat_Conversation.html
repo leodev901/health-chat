@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Clinical Sanctuary - AI Concierge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-fixed": "#00174b",
+                        "background": "#f7f9fb",
+                        "surface-container-high": "#e6e8ea",
+                        "on-background": "#191c1e",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "surface-container": "#eceef0",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#008378",
+                        "on-tertiary-fixed": "#370e00",
+                        "on-secondary-container": "#fefcff",
+                        "tertiary": "#924628",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f7f9fb",
+                        "secondary": "#0051d5",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#89f5e7",
+                        "on-primary-fixed-variant": "#005049",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-surface": "#191c1e",
+                        "surface-tint": "#006a61",
+                        "on-tertiary-container": "#fffbff",
+                        "on-primary-fixed": "#00201d",
+                        "primary": "#00685f",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "surface-container-low": "#f2f4f6",
+                        "on-surface-variant": "#3d4947",
+                        "secondary-fixed": "#dbe1ff",
+                        "on-primary-container": "#f4fffc",
+                        "surface-variant": "#e0e3e5",
+                        "outline-variant": "#bcc9c6",
+                        "inverse-surface": "#2d3133",
+                        "inverse-primary": "#6bd8cb",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "tertiary-container": "#b05e3d",
+                        "tertiary-fixed": "#ffdbce",
+                        "outline": "#6d7a77",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#316bf3",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f7f9fb"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none h-16 flex items-center justify-between px-6">
+<div class="flex items-center gap-4">
+<button class="text-teal-600 dark:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 duration-200 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-teal-900 dark:text-teal-50 font-manrope font-extrabold tracking-tighter text-lg">The Clinical Sanctuary</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border-2 border-primary/10">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close up professional portrait of a user profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsRUg1wbdGKaeDOVFJWsgGPpoc6maaiIFHT51k0AfqvXBw3Sxw2Z7516hSrgcUVZ2RILpPypxmQ5CHuGhss4m05qJqmr1hQTo_t9q5pUWEGxBJoiWzYR7IhbbqycvFXBjCIdxQhgaywQiyp7NdJc0a8ltg6fKF5wCscK0jbJLSpsOKBcYFAzo1TXx4ojLFXJzDGGtEBCPOlwpIepxZvXbIvI-f2kkBlnZxwKr0Zp2VXOmCoQClK-cIpIu-1zh_87uMUx0fd5wdhULj"/>
+</div>
+</div>
+</header>
+<!-- Main Content: Chat Interface -->
+<main class="pt-24 pb-48 min-h-screen px-6 max-w-4xl mx-auto flex flex-col">
+<!-- Chat Dialogue Rhythm -->
+<div class="space-y-8">
+<!-- AI Message 1 -->
+<div class="flex flex-col items-start max-w-[85%]">
+<div class="flex items-center gap-2 mb-2 px-1">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="font-label text-xs uppercase tracking-widest text-outline">Medical AI Concierge</span>
+</div>
+<div class="bg-surface-container-highest text-on-surface-variant p-5 rounded-xl rounded-tl-none font-body leading-relaxed">
+                    안녕하세요! 어떤 도움을 드릴까요? 진료 예약부터 결과 확인까지 실시간으로 도와드립니다.
+                </div>
+<span class="text-[10px] text-outline mt-1 px-1">오전 10:02</span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col items-end max-w-[85%] ml-auto">
+<div class="bg-primary text-on-primary p-5 rounded-xl rounded-tr-none font-body leading-relaxed shadow-sm">
+                    내일 오후 2시 이비인후과 예약 가능한가요?
+                </div>
+<span class="text-[10px] text-outline mt-1 px-1">오전 10:03</span>
+</div>
+<!-- AI Message 2 (Asymmetric Composition) -->
+<div class="flex flex-col items-start max-w-[85%]">
+<div class="flex items-center gap-2 mb-2 px-1">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="font-label text-xs uppercase tracking-widest text-outline">Medical AI Concierge</span>
+</div>
+<div class="bg-surface-container-highest text-on-surface-variant p-5 rounded-xl rounded-tl-none font-body leading-relaxed">
+                    잠시만요, 내일 오후 2시 이비인후과 예약 현황을 확인해 보겠습니다...
+                </div>
+<div class="mt-4 flex gap-2">
+<!-- Quick Action Chips -->
+<button class="px-4 py-2 rounded-full bg-surface-container-low text-primary text-sm font-medium hover:bg-primary-fixed-dim transition-all active:scale-95">
+                        다른 시간대 확인
+                    </button>
+<button class="px-4 py-2 rounded-full bg-surface-container-low text-primary text-sm font-medium hover:bg-primary-fixed-dim transition-all active:scale-95">
+                        담당의 정보 보기
+                    </button>
+</div>
+<span class="text-[10px] text-outline mt-1 px-1">오전 10:03</span>
+</div>
+</div>
+</main>
+<!-- Input Area (Fixed Bottom above Nav) -->
+<div class="fixed bottom-24 left-0 w-full px-6 z-40">
+<div class="max-w-4xl mx-auto">
+<div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-2 shadow-lg dark:shadow-none flex items-center gap-3">
+<button class="p-3 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<div class="flex-1 bg-surface-container-highest rounded-xl px-4 py-3">
+<input class="w-full bg-transparent border-none focus:ring-0 text-on-surface font-body text-sm placeholder:text-outline" placeholder="메시지를 입력하세요..." type="text"/>
+</div>
+<button class="bg-primary text-on-primary w-11 h-11 flex items-center justify-center rounded-xl shadow-md active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white dark:bg-slate-900 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] z-50 rounded-t-3xl">
+<!-- Concierge - Active -->
+<a class="flex flex-col items-center justify-center bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded-2xl px-5 py-2 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-inter text-xs font-medium uppercase tracking-widest">Concierge</span>
+</a>
+<!-- History -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-teal-500 dark:hover:text-teal-300 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="history">history</span>
+<span class="font-inter text-xs font-medium uppercase tracking-widest">History</span>
+</a>
+<!-- Wellness -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-teal-500 dark:hover:text-teal-300 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="spa">spa</span>
+<span class="font-inter text-xs font-medium uppercase tracking-widest">Wellness</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 hover:text-teal-500 dark:hover:text-teal-300 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-inter text-xs font-medium uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+<!-- Peace of Mind Progress Stepper (Contextual for appointment check) -->
+<div class="fixed right-6 top-1/2 -translate-y-1/2 hidden lg:flex flex-col items-center gap-6">
+<div class="w-px h-12 bg-surface-tint opacity-20"></div>
+<div class="w-2 h-2 rounded-full bg-surface-tint ring-4 ring-surface-tint/20"></div>
+<div class="w-px h-12 bg-surface-tint opacity-20"></div>
+<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
+<div class="w-px h-12 bg-surface-variant opacity-40"></div>
+<div class="w-2 h-2 rounded-full bg-surface-variant opacity-20"></div>
+</div>
+</body></html>

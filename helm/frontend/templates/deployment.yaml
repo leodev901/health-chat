@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: smart-house-ai-frontend
+  name: health-chat
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: smart-house-ai-frontend
+      app: health-chat
   template:
     metadata:
       labels:
-        app: smart-house-ai-frontend
+        app: health-chat
     spec:
       containers:
-        - name: smart-house-ai-frontend
+        - name: health-chat
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:

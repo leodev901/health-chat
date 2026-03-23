@@ -1,23 +1,15 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Manrope } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+// 폰트 설정
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata: Metadata = {
-  title: 'Hospital Chatbot Service',
+  title: 'The Clinical Sanctuary | Medical AI',
   description: 'AI-powered chatbot service for hospital operations',
   keywords: ['hospital', 'chatbot', 'AI', 'health care', 'medical assistant'],
-  openGraph: {
-    title: 'Hospital Chatbot Service',
-    description: 'AI-powered chatbot service for hospital operations',
-    type: 'website',
-    locale: 'ko_KR',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
 };
 
 export default function RootLayout({
@@ -26,8 +18,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className={inter.className}>{children}</body>
+    <html lang="ko" className={`${inter.variable} ${manrope.variable}`}>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+      </head>
+      <body className="antialiased bg-surface text-on-surface">
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/leodev901/smart-house-ai/frontend
+  repository: ghcr.io/leodev901/health-chat/frontend
   tag: "latest"
   pullPolicy: Always
 

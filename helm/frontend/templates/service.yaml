@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: smart-house-ai-frontend
+  name: health-chat
 spec:
   selector:
-    app: smart-house-ai-frontend
+    app: health-chat
   ports:
     - name: http
       port: {{ .Values.service.port }}

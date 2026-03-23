@@ -9,7 +9,9 @@ from app.core.exceptions import (
 )
 
 
-from app.core.log import setup_logging 
+from app.api.api import api_router
+from app.core.log import setup_logging
+from fastapi.middleware.cors import CORSMiddleware 
 
 
 @asynccontextmanager        
@@ -27,6 +29,17 @@ app = FastAPI(
 # 미들웨어 등록
 app.add_middleware(LoggingMiddleware)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # 배포 시 수정 필요
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# API 라우터 등록
+app.include_router(api_router)
+
 # 에러 핸들러 등록
 # 1. 커스텀 에러(우리가 던진 에러) 담당자 배정
 app.exception_handler(BaseAPIException)(custom_exception_handler)
@@ -41,13 +54,3 @@ def healthz():
 def hello():
     return {"message": "hello from fastapi"}
 
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        app, 
-        host=settings.APP_HOST, 
-        port=settings.APP_PORT,
-        log_level=settings.APP_LOG_LEVEL
-    )

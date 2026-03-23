@@ -15,5 +15,14 @@ class Settings(BaseSettings):
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8080
 
+    PROVIDER:str = "OPENAI"
+
+    OPENAI_API_KEY:str=""
+    OPENAI_MODEL:str="gpt-4o-mini"
+
+    GEMINI_API_KEY: str = ""
+    GEMINI_BASE_URL: str = ""
+    GEMINI_MODEL:str = "gemini-2.5-flash"
+
 settings = Settings()
     

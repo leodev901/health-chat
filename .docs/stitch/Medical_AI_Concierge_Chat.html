@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Clinical Sanctuary | Medical AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed": "#370e00",
+              "tertiary-fixed": "#ffdbce",
+              "surface-container-lowest": "#ffffff",
+              "on-surface": "#191c1e",
+              "surface-container-highest": "#e0e3e5",
+              "on-secondary-fixed": "#00174b",
+              "tertiary-fixed-dim": "#ffb59a",
+              "on-primary": "#ffffff",
+              "secondary-container": "#316bf3",
+              "on-secondary-fixed-variant": "#003ea8",
+              "surface": "#f7f9fb",
+              "secondary-fixed": "#dbe1ff",
+              "surface-container": "#eceef0",
+              "surface-container-high": "#e6e8ea",
+              "primary-fixed-dim": "#6bd8cb",
+              "outline": "#6d7a77",
+              "on-surface-variant": "#3d4947",
+              "secondary-fixed-dim": "#b4c5ff",
+              "on-secondary-container": "#fefcff",
+              "tertiary": "#924628",
+              "surface-dim": "#d8dadc",
+              "surface-tint": "#006a61",
+              "surface-bright": "#f7f9fb",
+              "outline-variant": "#bcc9c6",
+              "background": "#f7f9fb",
+              "inverse-on-surface": "#eff1f3",
+              "on-error": "#ffffff",
+              "surface-variant": "#e0e3e5",
+              "on-tertiary": "#ffffff",
+              "tertiary-container": "#b05e3d",
+              "on-secondary": "#ffffff",
+              "on-primary-container": "#f4fffc",
+              "error": "#ba1a1a",
+              "on-primary-fixed-variant": "#005049",
+              "on-tertiary-fixed-variant": "#773215",
+              "primary-fixed": "#89f5e7",
+              "on-error-container": "#93000a",
+              "primary-container": "#008378",
+              "surface-container-low": "#f2f4f6",
+              "inverse-surface": "#2d3133",
+              "on-primary-fixed": "#00201d",
+              "inverse-primary": "#6bd8cb",
+              "on-background": "#191c1e",
+              "secondary": "#0051d5",
+              "on-tertiary-container": "#fffbff",
+              "error-container": "#ffdad6",
+              "primary": "#00685f"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f7f9fb;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm shadow-teal-900/5">
+<div class="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-teal-700" data-icon="local_hospital">local_hospital</span>
+<h1 class="font-headline text-teal-800 font-extrabold tracking-tighter text-lg">The Clinical Sanctuary</h1>
+</div>
+<button class="p-2 rounded-full hover:bg-teal-50 transition-colors duration-300 scale-95 active:scale-90">
+<span class="material-symbols-outlined text-slate-500" data-icon="close">close</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 min-h-screen flex flex-col max-w-2xl mx-auto px-4 md:px-0">
+<!-- Welcome Section (Asymmetric Editorial Style) -->
+<section class="mb-12 mt-4">
+<h2 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight leading-tight">
+                편안한 진료를 위한<br/>커스텀 가이드
+            </h2>
+<p class="mt-4 text-on-surface-variant font-body text-lg max-w-[80%]">
+                클리니컬 생츄어리 AI 어시스턴트입니다. 무엇을 도와드릴까요?
+            </p>
+</section>
+<!-- Chat Area -->
+<div class="space-y-8 flex-grow">
+<!-- AI Message 1 -->
+<div class="flex flex-col items-start gap-4">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed text-sm" data-icon="smart_toy" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<span class="font-label text-xs font-bold uppercase tracking-widest text-primary">Sanctuary AI</span>
+</div>
+<div class="bg-surface-container-highest rounded-xl rounded-tl-none p-5 text-on-surface font-body leading-relaxed max-w-[85%] shadow-sm">
+                    안녕하세요! 어떤 도움을 드릴까요? 진료 예약부터 결과 확인까지 실시간으로 도와드립니다.
+                </div>
+</div>
+<!-- Quick Action Chips (Grid Layout) -->
+<div class="grid grid-cols-2 gap-3 mt-6">
+<button class="flex items-center gap-3 bg-surface-container-lowest p-4 rounded-xl hover:bg-primary-fixed-dim transition-all duration-300 text-left shadow-sm group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="calendar_today">calendar_today</span>
+<span class="font-label text-sm font-semibold">진료 예약</span>
+</button>
+<button class="flex items-center gap-3 bg-surface-container-lowest p-4 rounded-xl hover:bg-primary-fixed-dim transition-all duration-300 text-left shadow-sm group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="hourglass_empty">hourglass_empty</span>
+<span class="font-label text-sm font-semibold">대기 순번 확인</span>
+</button>
+<button class="flex items-center gap-3 bg-surface-container-lowest p-4 rounded-xl hover:bg-primary-fixed-dim transition-all duration-300 text-left shadow-sm group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="payments">article</span>
+<span class="font-label text-sm font-semibold">진료비 결제</span>
+</button>
+<button class="flex items-center gap-3 bg-surface-container-lowest p-4 rounded-xl hover:bg-primary-fixed-dim transition-all duration-300 text-left shadow-sm group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="explore">article</span>
+<span class="font-label text-sm font-semibold">입·퇴원 안내</span>
+</button>
+</div>
+<!-- Tonal Layering Illustration Card -->
+<div class="mt-8 relative overflow-hidden rounded-[2rem] bg-surface-container-low p-8 border border-outline-variant/10">
+<div class="relative z-10 flex flex-col gap-2">
+<h3 class="font-headline font-bold text-lg text-teal-900">당신의 건강 데이터가 암호화되어 보호되고 있습니다.</h3>
+<p class="font-body text-sm text-on-surface-variant">Clinical Sanctuary는 강력한 보안 프로토콜을 준수합니다.</p>
+</div>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl"></div>
+</div>
+</div>
+</main>
+<!-- Floating Input Bar -->
+<div class="fixed bottom-0 left-0 w-full p-6 z-50 pointer-events-none">
+<div class="max-w-2xl mx-auto w-full pointer-events-auto">
+<div class="relative bg-white/90 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,104,95,0.08)] rounded-full p-2 flex items-center gap-2 border border-outline-variant/10">
+<button class="p-3 text-slate-500 hover:text-teal-600 transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<input class="flex-grow bg-transparent border-none focus:ring-0 font-body text-on-surface placeholder:text-slate-400 py-3" placeholder="메시지를 입력하세요..." type="text"/>
+<div class="flex items-center gap-1 pr-1">
+<button class="p-3 text-slate-500 hover:text-teal-600 transition-colors rounded-full hover:bg-teal-50">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</button>
+<button class="p-3 bg-primary text-white rounded-full hover:bg-primary-container transition-all active:scale-90 shadow-lg shadow-teal-900/10">
+<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- BottomNavBar (Visible on Mobile Only, Hidden when keyboard/focus active in real use, but here following hierarchy) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 bg-white/90 backdrop-blur-xl rounded-t-[2rem] z-40 shadow-[0_-4px_24px_rgba(0,104,95,0.06)] pointer-events-none opacity-0">
+<!-- Suppressed because this is a focused chat journey/sub-page as per "The Destination Rule" -->
+</nav>
+<!-- Content Decorative Background Elements -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-fixed/20 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[10%] left-[-5%] w-[30%] h-[30%] bg-secondary-fixed/30 rounded-full blur-[100px]"></div>
+</div>
+</body></html>

@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: frontend-config
+  name: health-chat-config
 data:
   config.js: |
     window.ENV = {
-      VITE_API_BASE_URL: "{{ .Values.apiBaseUrl }}"
+      NEXT_PUBLIC_API_BASE_URL: "{{ .Values.apiBaseUrl }}"
     };
