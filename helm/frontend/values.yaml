@@ -1,0 +1,12 @@
+image:
+  repository: ghcr.io/leodev901/smart-house-ai/frontend
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  port: 80
+  targetPort: 80
+
+# API 서버의 기본 URL 주소를 지정합니다.
+# 클러스터(환경)별로 이 값을 덮어씌워(Override) 사용합니다.
+apiBaseUrl: "https://dual-simplified-trusts-planets.trycloudflare.com/"

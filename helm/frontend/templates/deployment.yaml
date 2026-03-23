@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-house-ai-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smart-house-ai-frontend
+  template:
+    metadata:
+      labels:
+        app: smart-house-ai-frontend
+    spec:
+      containers:
+        - name: smart-house-ai-frontend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/public/config.js
+              subPath: config.js
+              readOnly: true
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 10
+      volumes:
+        - name: config-volume
+          configMap:
+            name: frontend-config

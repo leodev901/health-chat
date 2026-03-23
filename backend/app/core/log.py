@@ -1,6 +1,6 @@
 import sys
 from loguru import logger
-from core.config import settings
+from app.core.config import settings
 
 def setup_logging():
     """앱 시작 시 1번만 호출하여 전체 로거(Logger) 설정을 초기화합니다."""

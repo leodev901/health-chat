@@ -1,0 +1,4 @@
+apiVersion: v2
+name: smart-house-ai-frontend
+version: 0.1.0
+appVersion: "0.1.0"
