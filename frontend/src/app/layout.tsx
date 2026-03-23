@@ -21,6 +21,8 @@ export default function RootLayout({
     <html lang="ko" className={`${inter.variable} ${manrope.variable}`}>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/config.js" />
       </head>
       <body className="antialiased bg-surface text-on-surface">
         {children}
