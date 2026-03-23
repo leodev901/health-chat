@@ -1,4 +1,4 @@
-name: backend> ci and push GHCR
+name: backend > ci and push GHCR
 
 on:
   push:
