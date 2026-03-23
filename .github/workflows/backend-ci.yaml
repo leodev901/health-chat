@@ -3,7 +3,11 @@ name: backend> ci and push GHCR
 on:
   push:
     branches: ["main"]
-    paths: ["backend/requirements.txt", "helm/backend/**", ".github/workflows/backend-ci.yml"]
+    paths:
+      - "backend/Dockerfile"
+      - "backend/requirements.txt"
+      - "helm/backend/**"
+      - ".github/workflows/backend-ci.yaml"
   workflow_dispatch:
     inputs:
       image_tag:
