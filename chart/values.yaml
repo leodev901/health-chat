@@ -1,0 +1,16 @@
+image:
+  # repository: ghcr.io/<GITHUB_OWNER>/api-fastapi
+  # tag: "dev"
+  repository: ghcr.io/jinsoooooooo/template-fastapi
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  port: 80
+  targetPort: 8080
+
+env:
+  APP_NAME: "Sample FastAPI"
+  APP_HOST: "0.0.0.0"
+  APP_PORT: "8080"
+  APP_LOG_LEVEL: "debug"
