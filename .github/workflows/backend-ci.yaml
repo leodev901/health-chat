@@ -39,7 +39,9 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          sed "s|replace-openai-api-key|$OPENAI_API_KEY|g; s|replace-gemini-api-key|$GEMINI_API_KEY|g" helm/backend/values.yaml
+          -e "s|replace-openai-api-key|$OPENAI_API_KEY|g" \
+          -e "s|replace-gemini-api-key|$GEMINI_API_KEY|g" \
+          helm/backend/values.yaml 
 
 
 
