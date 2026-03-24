@@ -83,7 +83,7 @@ export default function Home() {
         <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-teal-700" style={{ fontVariationSettings: "'FILL' 0" }}>local_hospital</span>
-            <h1 className="font-headline text-teal-800 font-extrabold tracking-tighter text-lg">The Clinical Sanctuary</h1>
+            <h1 className="font-headline text-teal-800 font-extrabold tracking-tighter text-lg">The Health-Chat</h1>
           </div>
           <button className="p-2 rounded-full hover:bg-teal-50 transition-colors duration-300 scale-95 active:scale-90">
             <span className="material-symbols-outlined text-slate-500">close</span>
