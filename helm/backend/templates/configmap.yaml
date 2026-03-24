@@ -7,3 +7,10 @@ data:
   APP_HOST: "{{ .Values.env.APP_HOST }}"
   APP_PORT: "{{ .Values.env.APP_PORT }}"
   APP_LOG_LEVEL: "{{ .Values.env.APP_LOG_LEVEL }}"
+  PROVIDER: "{{ .Values.env.PROVIDER }}"
+  OPENAI_API_KEY: "{{ .Values.env.OPENAI_API_KEY }}"
+  OPENAI_MODEL: "{{ .Values.env.OPENAI_MODEL }}"
+  GEMINI_API_KEY: "{{ .Values.env.GEMINI_API_KEY }}"
+  GEMINI_MODEL: "{{ .Values.env.GEMINI_MODEL }}"
+  GEMINI_BASE_URL: "{{ .Values.env.GEMINI_BASE_URL }}"
+  

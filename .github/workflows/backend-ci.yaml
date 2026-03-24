@@ -33,6 +33,17 @@ jobs:
           else
             echo "TAG=latest" >> $GITHUB_ENV
           fi
+      
+      - name: set Github secrets
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          sed "s|replace-openai-api-key|$OPENAI_API_KEY|g; s|replace-gemini-api-key|$GEMINI_API_KEY|g" helm/backend/values.yaml
+          sed "" helm/backend/values.yaml 
+          helm upgrade --install health-chat-api ./helm/backend -f /tmp/backend-values.yaml
+
+
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

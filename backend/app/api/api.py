@@ -11,22 +11,14 @@ from google.genai import types
 
 
 from app.core.config import settings
+from app.core.exceptions import ServiceUnavailableException
 
 
 
 api_router = APIRouter(prefix="/api", tags=["agent"])
 
 
-
-PROVIDER = settings.PROVIDER
-
-if PROVIDER == "OPENAI":
-    client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    MODEL = settings.OPENAI_MODEL
-else:
-    # GEMINAI
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
-    MODEL = settings.GEMINI_MODEL
+PROVIDER = settings.PROVIDER.upper()
 
 SESSION_MEMORY: dict[str, list[str]] = {}
 
@@ -126,10 +118,21 @@ class PlanResult(BaseModel):
 
 
 def call_llm(prompt: str):
+    if PROVIDER == "OPENAI":
+        if not settings.OPENAI_API_KEY.strip():
+            raise ServiceUnavailableException("OPENAI_API_KEY가 설정되지 않았습니다.")
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        model = settings.OPENAI_MODEL
+    else: #GEMINI
+        if not settings.GEMINI_API_KEY.strip():
+            raise ServiceUnavailableException("GEMINI_API_KEY가 설정되지 않았습니다.")
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        model = settings.GEMINI_MODEL
+
     print(prompt)
     if PROVIDER == "OPENAI":
         response = client.responses.create(
-            model=MODEL,
+            model=model,
             input=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
@@ -137,9 +140,9 @@ def call_llm(prompt: str):
         )
         return response.output_text.strip()
     else:
-        # GEMINAI
+        # GEMINI
         response = client.models.generate_content(
-            model=MODEL,
+            model=model,
             contents=prompt,
             config=types.GenerateContentConfig(
                 # 모델의 역할/행동 규칙을 지정

@@ -27,6 +27,10 @@ class ForbiddenException(BaseAPIException):
     def __init__(self, message: str = "권한이 없는 요청입니다."):
         super().__init__(status_code=403, error_code="FORBIDDEN", message=message)
 
+class ServiceUnavailableException(BaseAPIException):
+    def __init__(self, message: str = "외부 서비스 설정이 올바르지 않습니다."):
+        super().__init__(status_code=503, error_code="SERVICE_UNAVAILABLE", message=message)
+
 
 # =====================================================================
 # 3. 이제, 위에서 만든 에러(불량 딱지)가 던져졌을 때 가로채서 처리할 "에러 전담반(Handler)" 함수들입니다.
