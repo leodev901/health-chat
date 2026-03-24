@@ -79,17 +79,17 @@ intent 분류 기준:
   "reason": "왜 그렇게 분류 했는지 이유를 짧게 설명"
 }}
 
-최근 대화: {memory}
+사용자질문: {query}
 
-사용자 질문: {query}
+최근대화: {memory}
 """.strip()
 )
 
 SUMMURAIZE_ANSER_PROMPT = PromptTemplate.from_template(
     """
-다음 주어진 정보를 참고하여 어떤 도구를 사용하였고 최종 결과가 무엇인지 정리하라.
+다음 주어진 정보를 종합하여 사용자 질문의 최종 답변을 간략히 생성하라. (도구 실행 과정 간략한 요약 포함)
 
-사용자질의:: {query}
+사용자질문:: {query}
 intent:: {intent}
 steps: {steps}
 최근 대화: {memory}
@@ -174,22 +174,24 @@ def classify_intent_llm(query: str, memory: list[str]) -> tuple[ str, list[tuple
     except Exception as e:
         raise ValueError(f"intent JSON 파싱 실패: {response}") from e
 
-
-
 def appointment_tool(query: str, memory: list[str]) -> str:
     if "취소" in query:
         return "[예약] 예약 취소를 도와드릴게요."
     if "변경" in query:
         return "[예약] 예약 변경을 도와드릴게요."
+    if "접수" in query:
+        return "[예약] 예약 접수를 도와드릴게요."
     return "[예약] 내일 예약 가능합니다."
 
 def insurance_tool(query: str, memory: list[str]) -> str:
     return "[보험] 실손보험 청구 서류는 신분증, 진료비 영수증입니다."
 
 def info_tool(query: str, memory: list[str]) -> str:
-    if "시간" in query or "운영" in query:
+    if "시간" in query or "운영" in query or "진료시간" in query:
         return f"[안내] 운영시간은 평일 09:00~18:00입니다."
-    return f"[안내] 안내사항 입니다."
+    if "지도" in query or "위치" in query:
+        return f"[안내] 병원 위치는 성북구 화랑로22길 입니다."
+    return f"[안내] 기타 안내문의는 홈페이지를 확인해주세요."
 
 
 
