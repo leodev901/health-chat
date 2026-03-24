@@ -40,8 +40,6 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           sed "s|replace-openai-api-key|$OPENAI_API_KEY|g; s|replace-gemini-api-key|$GEMINI_API_KEY|g" helm/backend/values.yaml
-          sed "" helm/backend/values.yaml 
-          helm upgrade --install health-chat-api ./helm/backend -f /tmp/backend-values.yaml
 
 
 
