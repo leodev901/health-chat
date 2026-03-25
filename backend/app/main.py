@@ -10,6 +10,7 @@ from app.core.exceptions import (
 
 
 from app.api.api import api_router
+from app.api.api_langraph import api_graph_router
 from app.core.log import setup_logging
 from fastapi.middleware.cors import CORSMiddleware 
 
@@ -39,6 +40,8 @@ app.add_middleware(
 
 # API 라우터 등록
 app.include_router(api_router)
+app.include_router(api_graph_router)
+
 
 # 에러 핸들러 등록
 # 1. 커스텀 에러(우리가 던진 에러) 담당자 배정
