@@ -24,6 +24,7 @@ smart-house-ai/
 ├── backend/                    # FastAPI 백엔드 서비스
 │   ├── app/
 │   │   ├── api/
+│   │   │   ├── endpoint/
 │   │   ├── core/
 │   │   ├── main.py
 │   │   └── ...

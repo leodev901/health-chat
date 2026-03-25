@@ -12,14 +12,20 @@ from google.genai import types
 
 
 from app.core.config import settings
-from app.core.exceptions import ServiceUnavailableException
 
 
+agent_chat_langgraph_router = APIRouter(prefix="/api", tags=["agent"])
 
-api_router = APIRouter(prefix="/api", tags=["agent"])
 
+PROVIDER = settings.PROVIDER
 
-PROVIDER = settings.PROVIDER.upper()
+if PROVIDER == "OPENAI":
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    MODEL = settings.OPENAI_MODEL
+else:
+    # GEMINAI
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    MODEL = settings.GEMINI_MODEL
 
 SESSION_MEMORY: dict[str, list[str]] = {}
 
@@ -62,7 +68,7 @@ intent 분류 기준:
 - 두 개 이상의 도구가 필요한 경우 순차적으로 사용한다.
 
 
-반드시 아래 JSON 형식으로만 답해라. 마크다운 코드블록으로 감싸지 않는다.
+반드시 아래 JSON 형식으로만 답변한다. 답변은 json 코드블록으로 감싸지 않는다.
 {{
   "intent": "예약|보험|안내|복합|기타 중 하나",
   "tool_plan": [
@@ -119,21 +125,10 @@ class PlanResult(BaseModel):
 
 
 def call_llm(prompt: str):
-    if PROVIDER == "OPENAI":
-        if not settings.OPENAI_API_KEY.strip():
-            raise ServiceUnavailableException("OPENAI_API_KEY가 설정되지 않았습니다.")
-        client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        model = settings.OPENAI_MODEL
-    else: #GEMINI
-        if not settings.GEMINI_API_KEY.strip():
-            raise ServiceUnavailableException("GEMINI_API_KEY가 설정되지 않았습니다.")
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        model = settings.GEMINI_MODEL
-
     print(prompt)
     if PROVIDER == "OPENAI":
         response = client.responses.create(
-            model=model,
+            model=MODEL,
             input=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
@@ -141,9 +136,9 @@ def call_llm(prompt: str):
         )
         return response.output_text.strip()
     else:
-        # GEMINI
+        # GEMINAI
         response = client.models.generate_content(
-            model=model,
+            model=MODEL,
             contents=prompt,
             config=types.GenerateContentConfig(
                 # 모델의 역할/행동 규칙을 지정
@@ -171,8 +166,6 @@ def extract_json_text(response: str) -> str:
 
     return response
 
-
-
 # llm으로 의도 파악
 def classify_intent_llm(query: str, memory: list[str]) -> tuple[ str, list[tuple[str, str]] ]:
     prompt = INTENT_PLAN_PROMPT.format(
@@ -186,13 +179,14 @@ def classify_intent_llm(query: str, memory: list[str]) -> tuple[ str, list[tuple
 
     try:
         data = json.loads(clean_response)
+        
         pared = PlanResult(**data)
         # intent = data["intent"]
         # plan = [ (p[0],p[1]) for p in data["tool_plan"] ]
 
         return (pared.intent, pared.tool_plan)
     except Exception as e:
-        raise ValueError(f"intent JSON 파싱 실패: {clean_response}") from e
+        raise ValueError(f"intent JSON 파싱 실패: {response}") from e
 
 def appointment_tool(query: str, memory: list[str]) -> str:
     if "취소" in query:
@@ -247,7 +241,7 @@ def tool_dispatch(tool_name: str, tool_input: str, memory: list[str]) -> str:
 
 
 
-@api_router.post("/agent/chat", response_model=AgentResponse)
+@agent_chat_langgraph_router.post("/agent/chat/graph", response_model=AgentResponse)
 async def agent_chat(request:Request, payload:AgentRequest):
     logger.info(f"요청 시작 payload: {payload}")
 

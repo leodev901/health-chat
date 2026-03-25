@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Literal
 from fastapi import APIRouter, Request
 from loguru import logger
@@ -11,23 +12,33 @@ from google.genai import types
 
 
 from app.core.config import settings
+from app.core.exceptions import ServiceUnavailableException
+
+agent_chat_router = APIRouter(prefix="/api", tags=["agent"])
 
 
-api_graph_router = APIRouter(prefix="/api", tags=["agent"])
-
-
-
-PROVIDER = settings.PROVIDER
+PROVIDER = settings.PROVIDER.upper()
 
 if PROVIDER == "OPENAI":
+    if not settings.OPENAI_API_KEY.strip():
+        raise ServiceUnavailableException("OPENAI_API_KEY가 설정되지 않았습니다.")
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
     MODEL = settings.OPENAI_MODEL
-else:
-    # GEMINAI
+else: #GEMINI
+    if not settings.GEMINI_API_KEY.strip():
+        raise ServiceUnavailableException("GEMINI_API_KEY가 설정되지 않았습니다.")
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
     MODEL = settings.GEMINI_MODEL
 
-SESSION_MEMORY: dict[str, list[str]] = {}
+SESSION_MEMORY: dict[str, list[tuple[str,str]]] = {}
+# {
+#     "s1": [ 
+#             {"user":"mesasge~"},
+#             {"assistant":"mesasge~"},
+#             {"user":"mesasge~"},
+#             {"assistant":"mesasge~"},
+#         ],
+# }
 
 
 
@@ -68,7 +79,7 @@ intent 분류 기준:
 - 두 개 이상의 도구가 필요한 경우 순차적으로 사용한다.
 
 
-반드시 아래 JSON 형식으로만 답변한다. 답변은 json 코드블록으로 감싸지 않는다.
+반드시 아래 JSON 형식으로만 답해라. 마크다운 코드블록으로 감싸지 않는다.
 {{
   "intent": "예약|보험|안내|복합|기타 중 하나",
   "tool_plan": [
@@ -80,7 +91,8 @@ intent 분류 기준:
 
 사용자질문: {query}
 
-최근대화: {memory}
+최근대화: 
+{memory}
 """.strip()
 )
 
@@ -91,7 +103,8 @@ SUMMURAIZE_ANSER_PROMPT = PromptTemplate.from_template(
 사용자질문:: {query}
 intent:: {intent}
 steps: {steps}
-최근 대화: {memory}
+최근 대화: 
+{memory}
 
 """.strip()
 )
@@ -136,7 +149,7 @@ def call_llm(prompt: str):
         )
         return response.output_text.strip()
     else:
-        # GEMINAI
+        # GEMINI
         response = client.models.generate_content(
             model=MODEL,
             contents=prompt,
@@ -149,8 +162,18 @@ def call_llm(prompt: str):
         )
         return response.text.strip()
 
-def build_memory(memory:list[str]) -> str:  
-    return "\n".join(memory).strip() if memory else "(없음)"
+def build_memory( memory:list[tuple[str,str]] ) -> str:  
+    print("build_memory")
+    history = []
+    
+    for mem in memory:
+        print(f"{mem[0]}: {mem[1]}")
+        history.append(f"{mem[0]}: {mem[1]}")
+
+    # return "\n".join( memory if memory else "(없음)" )
+    return "\n".join( history )  if history else "(없음)" 
+    
+    
 
 
 def extract_json_text(response: str) -> str:
@@ -166,8 +189,10 @@ def extract_json_text(response: str) -> str:
 
     return response
 
+
+
 # llm으로 의도 파악
-def classify_intent_llm(query: str, memory: list[str]) -> tuple[ str, list[tuple[str, str]] ]:
+def classify_intent_llm(query: str, memory: list[tuple[str,str]]) -> tuple[ str, list[tuple[str, str]] ]:
     prompt = INTENT_PLAN_PROMPT.format(
         memory=build_memory(memory),
         query=query
@@ -179,16 +204,15 @@ def classify_intent_llm(query: str, memory: list[str]) -> tuple[ str, list[tuple
 
     try:
         data = json.loads(clean_response)
-        
         pared = PlanResult(**data)
         # intent = data["intent"]
         # plan = [ (p[0],p[1]) for p in data["tool_plan"] ]
 
         return (pared.intent, pared.tool_plan)
     except Exception as e:
-        raise ValueError(f"intent JSON 파싱 실패: {response}") from e
+        raise ValueError(f"intent JSON 파싱 실패: {clean_response}") from e
 
-def appointment_tool(query: str, memory: list[str]) -> str:
+def appointment_tool(query: str, memory: list[tuple[str,str]]) -> str:
     if "취소" in query:
         return "[예약] 예약 취소를 도와드릴게요."
     if "변경" in query:
@@ -197,10 +221,10 @@ def appointment_tool(query: str, memory: list[str]) -> str:
         return "[예약] 예약 접수를 도와드릴게요."
     return "[예약] 내일 예약 가능합니다."
 
-def insurance_tool(query: str, memory: list[str]) -> str:
+def insurance_tool(query: str, memory: tuple[str,str]) -> str:
     return "[보험] 실손보험 청구 서류는 신분증, 진료비 영수증입니다."
 
-def info_tool(query: str, memory: list[str]) -> str:
+def info_tool(query: str, memory: tuple[str,str]) -> str:
     if "시간" in query or "운영" in query or "진료시간" in query:
         return f"[안내] 운영시간은 평일 09:00~18:00입니다."
     if "지도" in query or "위치" in query:
@@ -218,7 +242,7 @@ def compose_final_answer(steps: list[StepResult], intent: str) -> str:
     return final_answer.strip()
 
 
-def summurize_final_anser(query:str, intent:str, steps:list[StepResult], memory:list[str])->str:
+def summurize_final_anser(query:str, intent:str, steps:list[StepResult], memory:list[tuple[str,str]])->str:
     prompt = SUMMURAIZE_ANSER_PROMPT.format(
         query=query,
         intent=intent,
@@ -228,7 +252,7 @@ def summurize_final_anser(query:str, intent:str, steps:list[StepResult], memory:
     return call_llm(prompt)
     
 
-def tool_dispatch(tool_name: str, tool_input: str, memory: list[str]) -> str:
+def tool_dispatch(tool_name: str, tool_input: str, memory: list[tuple[str,str]]) -> str:
     TOOLS_CALL_MAP = {
         "appointment_tool":appointment_tool,
         "insurance_tool":insurance_tool,
@@ -241,7 +265,7 @@ def tool_dispatch(tool_name: str, tool_input: str, memory: list[str]) -> str:
 
 
 
-@api_graph_router.post("/agent/chat/graph", response_model=AgentResponse)
+@agent_chat_router.post("/agent/chat", response_model=AgentResponse)
 async def agent_chat(request:Request, payload:AgentRequest):
     logger.info(f"요청 시작 payload: {payload}")
 
@@ -286,14 +310,19 @@ async def agent_chat(request:Request, payload:AgentRequest):
     elif intent == "기타":
         final_answer = "처리 가능한 문의가 없습니다."
     else:
-        final_answer = summurize_final_anser(steps, intent, steps, memory)    
+        final_answer = summurize_final_anser(query, intent, steps, memory)    
 
     logger.info(f"최종 응답 요약: {final_answer}")
 
     # To-Do session memory 유지
-    SESSION_MEMORY[session_id].append(query)
+    SESSION_MEMORY[session_id].append(("user",query))
+    SESSION_MEMORY[session_id].append(("assistant",final_answer))
+
     if len(SESSION_MEMORY[session_id])> 5:
         SESSION_MEMORY[session_id].pop(0)
+    
+    for session in SESSION_MEMORY:
+        print(f"{session} : {SESSION_MEMORY[session]}")
 
 
     # To-Do structured output 반환
