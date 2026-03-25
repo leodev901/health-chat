@@ -34,7 +34,7 @@ export default function Home() {
 
     try {
       const baseUrl = (typeof window !== 'undefined' && (window as any).ENV?.NEXT_PUBLIC_API_BASE_URL) || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
-      const response = await fetch(`${baseUrl}/api/agent/chat`, {
+      const response = await fetch(`${baseUrl}/api/agent/chat/graph`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
