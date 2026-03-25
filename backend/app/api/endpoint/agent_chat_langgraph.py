@@ -4,97 +4,69 @@ from typing import Literal
 from fastapi import APIRouter, Request
 from loguru import logger
 from pydantic import BaseModel
-from langchain_core.prompts import PromptTemplate 
 from loguru import logger
 from openai import OpenAI
 from google import genai
 from google.genai import types
+from langgraph.graph import StateGraph, START, END
+
+from typing import TypedDict, List, Tuple, Optional
+
+
+from app.api.prompt import (
+    SYSTEM_PROMPT,
+    INTENT_PLAN_PROMPT,
+    SUMMURAIZE_ANSER_PROMPT
+)
 
 
 from app.core.config import settings
+from app.core.exceptions import ServiceUnavailableException
 
+agent_chat_graph_router = APIRouter(prefix="/api", tags=["agent"])
 
-agent_chat_langgraph_router = APIRouter(prefix="/api", tags=["agent"])
-
-
-PROVIDER = settings.PROVIDER
+# PROVIDER = settings.PROVIDER.upper()
+PROVIDER = "GEMINI"
 
 if PROVIDER == "OPENAI":
+    if not settings.OPENAI_API_KEY.strip():
+        raise ServiceUnavailableException("OPENAI_API_KEY가 설정되지 않았습니다.")
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
     MODEL = settings.OPENAI_MODEL
-else:
-    # GEMINAI
+else: #GEMINI
+    if not settings.GEMINI_API_KEY.strip():
+        raise ServiceUnavailableException("GEMINI_API_KEY가 설정되지 않았습니다.")
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
     MODEL = settings.GEMINI_MODEL
 
-SESSION_MEMORY: dict[str, list[str]] = {}
 
 
-
-SYSTEM_PROMPT = """
-너의 역할은 병원 고객지원 에이전트입니다.
-"""
+SESSION_MEMORY: dict[str, list[tuple[str,str]]] = {}
 
 
-INTENT_PLAN_PROMPT = PromptTemplate.from_template(
-    """
-아래 사용자 질문의 intent와 실행할 tool 계획을 분류해라 
+class AgentState(TypedDict, total=False):
+    # API 요청에서 들어오는 기본 값 초기 세팅 
+    session_id:str
+    user_id:str
+    query:str
+    memory:list[tuple[str,str]] # 이번 seesion_id의 메모리
 
-분류 가능한 intent 정의
-- 예약
-- 보험
-- 안내
-- 복합
-- 기타
+    # planner가 채우는 값
+    intent: str
+    tool_plan: list[tuple[str, str]]
+    reason: str
 
-intent 분류 기준:
-- 예약: 예약, 취소, 변경, 접수, 예약 가능 여부
-- 보험: 보험, 실손보험, 청구, 서류
-- 안내: 위치, 어디, 지도, 운영시간, 진료시간, 확인, 조회
-- 복합: 위 세가지 중 2개 이상 해당하는 경우
-- 기타: 위 기준에 해당하지 않는 질문
+    # excutor가 채우는 값
+    steps: list[dict] 
+    has_error: bool 
+    error_message: Optional[str]
 
+    # executor 실행 제어
+    current_step:int
+    next:str
 
-호출 가능한 도구 정의
-- appointment_tool
-- insurance_tool
-- info_tool
-
-도구 실행 계획 기준
-- 예약/취소는 appointment_tool을 사용한다.
-- 보험은 insurance_tool을 사용한다.
-- 안내는 info_tool을 사용한다.
-- 기타는 tool을 호출하지 않는다. (None)
-- 두 개 이상의 도구가 필요한 경우 순차적으로 사용한다.
-
-
-반드시 아래 JSON 형식으로만 답변한다. 답변은 json 코드블록으로 감싸지 않는다.
-{{
-  "intent": "예약|보험|안내|복합|기타 중 하나",
-  "tool_plan": [
-    ["도구이름1", "질문1"],
-    ["도구이름2", "질문2"]
-  ],
-  "reason": "왜 그렇게 분류 했는지 이유를 짧게 설명"
-}}
-
-사용자질문: {query}
-
-최근대화: {memory}
-""".strip()
-)
-
-SUMMURAIZE_ANSER_PROMPT = PromptTemplate.from_template(
-    """
-다음 주어진 정보를 종합하여 사용자 질문의 최종 답변을 간략히 생성하라. (도구 실행 과정 간략한 요약 포함)
-
-사용자질문:: {query}
-intent:: {intent}
-steps: {steps}
-최근 대화: {memory}
-
-""".strip()
-)
+    #reporter가 채우는 값
+    final_answer: str
 
 
 class AgentRequest(BaseModel):
@@ -124,6 +96,121 @@ class PlanResult(BaseModel):
 
 
 
+
+def planner_node(state: AgentState) -> AgentState:
+    # planner의 책임:
+    # 1) 사용자 질문과 memory를 읽는다.
+    # 2) intent를 분류한다.
+    # 3) 어떤 tool들을 어떤 순서로 실행할지 계획(tool_plan)을 만든다.
+    #
+    # 중요한 점:
+    # LangGraph 노드는 "state 전체를 수정"하는 느낌보다
+    # "내가 갱신한 필드만 반환"한다고 생각하면 이해가 쉽습니다.
+
+    query=state["query"]
+    memory=state["memory"]
+
+    prompt = INTENT_PLAN_PROMPT.format(
+        query=query,
+        memory=build_memory(memory),
+    )
+
+    response = call_llm(prompt)
+    clean_response = extract_json_text(response)
+    print(response)
+
+    try:
+        data = json.loads(clean_response)
+        pared = PlanResult(**data)
+    except Exception as e:
+        raise ValueError(f"intent JSON 파싱 실패: {clean_response}") from e
+
+    tool_plan = pared.tool_plan
+    next="executor" if len(tool_plan) > 0 else "reporter"
+    
+    return {
+        "intent":pared.intent,
+        "tool_plan":pared.tool_plan,
+        "reason":pared.reason,
+        "next":next,
+    }
+
+
+    
+
+def executor_node(state: AgentState) -> AgentState:
+    # executor의 책임:
+    # planner가 만든 tool_plan을 순서대로 실행해서
+    # steps 리스트에 실행 결과를 누적합니다.
+    # [주의] 더 이상 실행 할 tool이 없다면 reptorter로 넘어갑니다.
+
+    current_step = state["current_step"]
+    tool_name, tool_input = state["tool_plan"][current_step]
+    
+    has_error=False
+
+    try:
+        answer = tool_dispatch(tool_name, tool_input, state["memory"])
+    except Exception as e:
+        answer = "[tool_error] 잠시 후 다시 시도해주세요."
+        has_error = True
+        error_message = str(e)
+    
+    steps = state["steps"]
+    steps.append(
+        {
+            "tool_name":tool_name,
+            "tool_input":tool_input,
+            "tool_result":answer
+        }
+    )
+
+    if has_error:
+        return {
+            "next":"reporter",
+            "steps":steps,
+            "has_error":has_error,
+            "error_message":error_message
+        }
+    
+    # 다음 step 판단
+    current_step+=1
+    next = "executor" if current_step < len(state["tool_plan"]) else "reporter"
+
+    return {
+        "next":next,
+        "steps":steps,
+        "current_step":current_step,
+    }
+
+def reporter_node(state: AgentState) -> AgentState:
+    # reporter의 책임:
+    # executor 결과(steps)와 intent를 읽어서
+    # 사용자에게 보여줄 최종 final_answer를 만듭니다.
+
+    if state["has_error"]:
+        return {
+            "final_answer":"Tool 도구 사용 중 오류가 발생했습니다."
+        }
+    elif state["intent"] == "기타":
+        return {
+            "final_answer":"처리 가능한 문의가 없습니다."
+        }
+    
+    
+    prompt = SUMMURAIZE_ANSER_PROMPT.format(
+        query=state["query"],
+        intent=state["intent"],
+        steps=state["steps"],
+        memory=build_memory(state["memory"])
+    )
+    
+    final_answer = call_llm(prompt)
+    return {
+        "final_answer":final_answer
+    }
+
+
 def call_llm(prompt: str):
     print(prompt)
     if PROVIDER == "OPENAI":
@@ -136,7 +223,7 @@ def call_llm(prompt: str):
         )
         return response.output_text.strip()
     else:
-        # GEMINAI
+        # GEMINI
         response = client.models.generate_content(
             model=MODEL,
             contents=prompt,
@@ -149,10 +236,17 @@ def call_llm(prompt: str):
         )
         return response.text.strip()
 
-def build_memory(memory:list[str]) -> str:  
-    return "\n".join(memory).strip() if memory else "(없음)"
+def build_memory( memory:list[tuple[str,str]] ) -> str:  
+    print("build_memory")
+    history = []
+    
+    for mem in memory:
+        print(f"{mem[0]}: {mem[1]}")
+        history.append(f"{mem[0]}: {mem[1]}")
 
-
+    # return "\n".join( memory if memory else "(없음)" )
+    return "\n".join( history )  if history else "(없음)" 
+    
 def extract_json_text(response: str) -> str:
     response = response.strip()
 
@@ -166,69 +260,8 @@ def extract_json_text(response: str) -> str:
 
     return response
 
-# llm으로 의도 파악
-def classify_intent_llm(query: str, memory: list[str]) -> tuple[ str, list[tuple[str, str]] ]:
-    prompt = INTENT_PLAN_PROMPT.format(
-        memory=build_memory(memory),
-        query=query
-    )
 
-    response = call_llm(prompt)
-    print(response)
-    clean_response = extract_json_text(response)
-
-    try:
-        data = json.loads(clean_response)
-        
-        pared = PlanResult(**data)
-        # intent = data["intent"]
-        # plan = [ (p[0],p[1]) for p in data["tool_plan"] ]
-
-        return (pared.intent, pared.tool_plan)
-    except Exception as e:
-        raise ValueError(f"intent JSON 파싱 실패: {response}") from e
-
-def appointment_tool(query: str, memory: list[str]) -> str:
-    if "취소" in query:
-        return "[예약] 예약 취소를 도와드릴게요."
-    if "변경" in query:
-        return "[예약] 예약 변경을 도와드릴게요."
-    if "접수" in query:
-        return "[예약] 예약 접수를 도와드릴게요."
-    return "[예약] 내일 예약 가능합니다."
-
-def insurance_tool(query: str, memory: list[str]) -> str:
-    return "[보험] 실손보험 청구 서류는 신분증, 진료비 영수증입니다."
-
-def info_tool(query: str, memory: list[str]) -> str:
-    if "시간" in query or "운영" in query or "진료시간" in query:
-        return f"[안내] 운영시간은 평일 09:00~18:00입니다."
-    if "지도" in query or "위치" in query:
-        return f"[안내] 병원 위치는 성북구 화랑로22길 입니다."
-    return f"[안내] 기타 안내문의는 홈페이지를 확인해주세요."
-
-
-
-def compose_final_answer(steps: list[StepResult], intent: str) -> str:
-    if intent == "기타":
-        return "처리 가능한 문의가 없습니다."
-    final_answer = ""
-    for step in steps:
-        final_answer += f" {step.tool_result}"
-    return final_answer.strip()
-
-
-def summurize_final_anser(query:str, intent:str, steps:list[StepResult], memory:list[str])->str:
-    prompt = SUMMURAIZE_ANSER_PROMPT.format(
-        query=query,
-        intent=intent,
-        steps=steps,
-        memory=build_memory(memory)
-    )
-    return call_llm(prompt)
-    
-
-def tool_dispatch(tool_name: str, tool_input: str, memory: list[str]) -> str:
+def tool_dispatch(tool_name: str, tool_input: str, memory: list[tuple[str,str]]) -> str:
     TOOLS_CALL_MAP = {
         "appointment_tool":appointment_tool,
         "insurance_tool":insurance_tool,
@@ -241,67 +274,106 @@ def tool_dispatch(tool_name: str, tool_input: str, memory: list[str]) -> str:
 
 
 
-@agent_chat_langgraph_router.post("/agent/chat/graph", response_model=AgentResponse)
+
+def appointment_tool(query: str, memory: list[tuple[str,str]]) -> str:
+    if "취소" in query:
+        return "[예약] 예약 취소를 도와드릴게요."
+    if "변경" in query:
+        return "[예약] 예약 변경을 도와드릴게요."
+    if "접수" in query:
+        return "[예약] 예약 접수를 도와드릴게요."
+    return "[예약] 내일 예약 가능합니다."
+
+def insurance_tool(query: str, memory: tuple[str,str]) -> str:
+    return "[보험] 실손보험 청구 서류는 신분증, 진료비 영수증입니다."
+
+def info_tool(query: str, memory: tuple[str,str]) -> str:
+    if "시간" in query or "운영" in query or "진료시간" in query:
+        return f"[안내] 운영시간은 평일 09:00~18:00입니다."
+    if "지도" in query or "위치" in query:
+        return f"[안내] 병원 위치는 성북구 화랑로22길 입니다."
+    return f"[안내] 기타 안내문의는 홈페이지를 확인해주세요."
+
+
+
+def get_graph():
+    
+    # StateGraph는 "이 그래프가 어떤 sate 스키마를 공유할지" 먼저 정의합니다.
+    graph = StateGraph(AgentState)
+
+    # 먼저 graph에 노드를 등록한다.
+    graph.add_node("planner", planner_node)
+    graph.add_node("executor", executor_node)
+    graph.add_node("reporter", reporter_node)
+
+    # graph의 흐름(workflow)를 정의합니다.
+    # 시작은 planner
+    graph.add_edge(START,"planner")
+    graph.add_conditional_edges(
+        "planner",
+        lambda state : state["next"],
+        ["executor","reporter"]
+    )
+    graph.add_conditional_edges(
+        "executor",
+        lambda state : state["next"],
+        ["executor","reporter"]
+    )
+    graph.add_edge("reporter",END)
+    
+    return graph.compile()
+
+
+
+@agent_chat_graph_router.post("/agent/chat/graph", response_model=AgentResponse)
 async def agent_chat(request:Request, payload:AgentRequest):
     logger.info(f"요청 시작 payload: {payload}")
 
     session_id = payload.session_id
+    user_id=payload.user_id
     query = payload.query.strip()
     clean_query = query.lower()
 
-
-    # 세션 메모리 확인
+    # SESSION_MEMORY 초기화
     if session_id not in SESSION_MEMORY:
         SESSION_MEMORY[session_id] = []
     
-    memory = SESSION_MEMORY[session_id][:]
+    memory = SESSION_MEMORY[session_id][:] # 해당 세션의 대화 히스톨 복제
 
-    # LLM으로 intent와 tool plan을 한 번에 세운다.
-    intent, plan = classify_intent_llm(clean_query, memory)
-    logger.info(f"intent 분류 결과: {intent}")
-    logger.info(f"실행할 tool 목록: {plan}")
-    
+    # 초기 스테이트 생성
+    state = AgentState(
+        session_id=session_id,
+        user_id=user_id,
+        query=clean_query,
+        memory=memory,
+        current_step=0,
+        steps=[],
+        has_error=False,
+        error_message=None,
+    )
 
-    # To-Do multi-step 처리
-    steps = []
-    has_error = False
-    for tool_name, tool_input in plan:
-        try:
-            answer = tool_dispatch(tool_name, tool_input, memory)
-        except Exception as e:
-            answer = "[error ]잠시 후 다시 시도해주세요."
-            has_error = True
-            logger.error(f"error: {e}")
+    # langgraph 실행
+    graph = get_graph()
+    final_state = graph.invoke(state)
 
-        steps.append(
-                StepResult(
-                    tool_name=tool_name,
-                    tool_input=tool_input,
-                    tool_result=answer,
-                )
-            )
-        
-    if has_error:
-        final_answer = "처리중 오류가 발생했습니다."
-    elif intent == "기타":
-        final_answer = "처리 가능한 문의가 없습니다."
-    else:
-        final_answer = summurize_final_anser(steps, intent, steps, memory)    
-
-    logger.info(f"최종 응답 요약: {final_answer}")
 
     # To-Do session memory 유지
-    SESSION_MEMORY[session_id].append(query)
-    if len(SESSION_MEMORY[session_id])> 5:
+    SESSION_MEMORY[session_id].append(("user",query))
+    SESSION_MEMORY[session_id].append(("assistant",final_state["final_answer"]))
+
+    if len(SESSION_MEMORY[session_id])> 10:
         SESSION_MEMORY[session_id].pop(0)
+        SESSION_MEMORY[session_id].pop(0)
+        
 
-
-    # To-Do structured output 반환
+    # API 반환 structured output 반환
     return AgentResponse(
         session_id= session_id,
-        intent= intent,
-        tools_used= [tool_name for tool_name, tool_input in plan],
-        steps= steps,
-        final_answer= final_answer,
+        intent= final_state["intent"],
+        tools_used= [tool_name for tool_name, tool_input in final_state["tool_plan"]],
+        steps= final_state["steps"],
+        final_answer= final_state["final_answer"],
         memory_size= len(SESSION_MEMORY[session_id])
     )
+
+    
